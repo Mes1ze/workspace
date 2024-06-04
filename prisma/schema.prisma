@@ -1,0 +1,280 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://shubizle11_reps:2MyK6%95@shubizle11.beget.tech:3306/shubizle11_reps"
+}
+
+model archive {
+  id                 Int       @id @default(autoincrement())
+  table_name         String    @db.VarChar(100)
+  previous_change_id Int
+  json_of_changes    Json
+  time               DateTime  @db.Time(0)
+  author             Int
+  change_type        String    @db.VarChar(50)
+  archive            archive   @relation("archiveToarchive", fields: [previous_change_id], references: [id], onUpdate: Restrict, map: "archive_ibfk_1")
+  other_archive      archive[] @relation("archiveToarchive")
+  employee           employee  @relation(fields: [author], references: [id], onUpdate: Restrict, map: "archive_ibfk_2")
+
+  @@index([author], map: "author")
+  @@index([previous_change_id], map: "previous_change_id")
+}
+
+model categories {
+  id            Int             @id @default(autoincrement())
+  category_name String          @db.VarChar(50)
+  type          String          @db.VarChar(50)
+  task_category task_category[]
+}
+
+model comments {
+  id          Int      @id @default(autoincrement())
+  task_id     Int
+  employee_id Int
+  text        String   @db.VarChar(1000)
+  tasks       tasks    @relation(fields: [task_id], references: [id], onUpdate: Restrict, map: "comments_ibfk_1")
+  employee    employee @relation(fields: [employee_id], references: [id], onUpdate: Restrict, map: "comments_ibfk_2")
+
+  @@index([employee_id], map: "employee_id")
+  @@index([task_id], map: "task_id")
+}
+
+model completion_scores {
+  id    Int     @id @default(autoincrement())
+  name  String  @db.VarChar(50)
+  tasks tasks[]
+}
+
+model day_time_history {
+  id                                              Int      @id @default(autoincrement())
+  type                                            String   @db.VarChar(12)
+  unix                                            Int
+  employee_id                                     Int
+  author                                          Int
+  comment                                         String   @db.VarChar(255)
+  employee_day_time_history_employee_idToemployee employee @relation("day_time_history_employee_idToemployee", fields: [employee_id], references: [id], onUpdate: Restrict, map: "day_time_history_ibfk_1")
+  employee_day_time_history_authorToemployee      employee @relation("day_time_history_authorToemployee", fields: [author], references: [id], onUpdate: Restrict, map: "day_time_history_ibfk_2")
+
+  @@index([author], map: "author")
+  @@index([employee_id], map: "employee_id")
+}
+
+model employee {
+  id                                                               Int                      @id @default(autoincrement())
+  role_id                                                          Int
+  firstname                                                        String                   @db.VarChar(50)
+  surname                                                          String                   @db.VarChar(50)
+  fathername                                                       String                   @db.VarChar(50)
+  login                                                            String                   @unique(map: "login") @db.VarChar(100)
+  password_hash                                                    String                   @db.VarChar(100)
+  archive                                                          archive[]
+  comments                                                         comments[]
+  day_time_history_day_time_history_employee_idToemployee          day_time_history[]       @relation("day_time_history_employee_idToemployee")
+  day_time_history_day_time_history_authorToemployee               day_time_history[]       @relation("day_time_history_authorToemployee")
+  roles                                                            roles                    @relation(fields: [role_id], references: [id], onUpdate: Restrict, map: "employee_ibfk_1")
+  project_history                                                  project_history[]
+  projects                                                         projects[]
+  subordinates_subordinates_leader_idToemployee                    subordinates[]           @relation("subordinates_leader_idToemployee")
+  subordinates_subordinates_subordinate_idToemployee               subordinates[]           @relation("subordinates_subordinate_idToemployee")
+  task_performers_task_performers_director_idToemployee            task_performers[]        @relation("task_performers_director_idToemployee")
+  task_performers_task_performers_executor_idToemployee            task_performers[]        @relation("task_performers_executor_idToemployee")
+  tasks                                                            tasks[]
+  tasks_history                                                    tasks_history[]
+  telegram_notifications_telegram_notifications_employeeToemployee telegram_notifications[] @relation("telegram_notifications_employeeToemployee")
+  time_of_completion                                               time_of_completion[]
+  time_of_completion_time_of_completion_authorTotasks              time_of_completion[]     @relation("time_of_completion_authorTotasks")
+  tokens                                                           tokens[]
+
+  @@index([role_id], map: "role_id")
+}
+
+model project_columns {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(50)
+  project_id   Int
+  order_number Int
+  projects     projects @relation(fields: [project_id], references: [id], onUpdate: Restrict, map: "project_columns_ibfk_1")
+  tasks        tasks[]
+
+  @@index([project_id], map: "project_id")
+}
+
+model project_history {
+  id          Int      @id @default(autoincrement())
+  project_id  Int
+  employee_id Int
+  date        Int
+  field       String   @db.VarChar(50)
+  old_value   String   @db.VarChar(500)
+  new_value   String   @db.VarChar(500)
+  employee    employee @relation(fields: [employee_id], references: [id], onDelete: Cascade, map: "project_history_ibfk_1")
+  projects    projects @relation(fields: [project_id], references: [id], onDelete: Cascade, map: "project_history_ibfk_2")
+
+  @@index([employee_id], map: "project_history_ibfk_1")
+  @@index([project_id], map: "project_history_ibfk_2")
+}
+
+model project_stages {
+  id                                         Int        @id @default(autoincrement())
+  project_id                                 Int
+  name                                       String     @db.VarChar(500)
+  deadline                                   Int
+  projects                                   projects   @relation(fields: [project_id], references: [id], onDelete: Cascade, map: "project_stages_ibfk_1")
+  projects_projects_stage_idToproject_stages projects[] @relation("projects_stage_idToproject_stages")
+
+  @@index([project_id], map: "project_id")
+}
+
+model projects {
+  id                                               Int               @id @default(autoincrement())
+  name                                             String            @db.VarChar(500)
+  description                                      String?           @db.Text
+  deadline                                         String?           @db.VarChar(15)
+  responsible_id                                   Int?
+  stage_id                                         Int?
+  customer                                         String?           @db.VarChar(500)
+  is_archive                                       String            @default("0") @db.VarChar(10)
+  project_columns                                  project_columns[]
+  project_history                                  project_history[]
+  project_stages                                   project_stages[]
+  employee                                         employee?         @relation(fields: [responsible_id], references: [id], onDelete: Cascade, map: "projects_ibfk_1")
+  project_stages_projects_stage_idToproject_stages project_stages?   @relation("projects_stage_idToproject_stages", fields: [stage_id], references: [id], onDelete: Cascade, map: "projects_ibfk_2")
+
+  @@index([responsible_id], map: "responsoble_id")
+  @@index([stage_id], map: "stage_id")
+}
+
+model roles {
+  id       Int        @id @default(autoincrement())
+  name     String     @db.VarChar(50)
+  employee employee[]
+}
+
+model subordinates {
+  id                                             Int      @id @default(autoincrement())
+  leader_id                                      Int
+  subordinate_id                                 Int
+  employee_subordinates_leader_idToemployee      employee @relation("subordinates_leader_idToemployee", fields: [leader_id], references: [id], onUpdate: Restrict, map: "subordinates_ibfk_1")
+  employee_subordinates_subordinate_idToemployee employee @relation("subordinates_subordinate_idToemployee", fields: [subordinate_id], references: [id], onUpdate: Restrict, map: "subordinates_ibfk_2")
+
+  @@index([leader_id], map: "leader_id")
+  @@index([subordinate_id], map: "subordinate_id")
+}
+
+model task_category {
+  id          Int        @id @default(autoincrement())
+  task_id     Int
+  category_id Int
+  categories  categories @relation(fields: [category_id], references: [id], onUpdate: Restrict, map: "task_category_ibfk_1")
+  tasks       tasks      @relation(fields: [task_id], references: [id], onUpdate: Restrict, map: "task_category_ibfk_2")
+
+  @@index([category_id], map: "category_id")
+  @@index([task_id], map: "task_id")
+}
+
+model task_performers {
+  id                                             Int      @id @default(autoincrement())
+  task_id                                        Int
+  executor_id                                    Int
+  director_id                                    Int
+  employee_task_performers_director_idToemployee employee @relation("task_performers_director_idToemployee", fields: [director_id], references: [id], onUpdate: Restrict, map: "task_performers_ibfk_1")
+  employee_task_performers_executor_idToemployee employee @relation("task_performers_executor_idToemployee", fields: [executor_id], references: [id], onUpdate: Restrict, map: "task_performers_ibfk_2")
+  tasks                                          tasks    @relation(fields: [task_id], references: [id], onUpdate: Restrict, map: "task_performers_ibfk_3")
+
+  @@index([director_id], map: "director_id")
+  @@index([executor_id], map: "executor_id")
+  @@index([task_id], map: "task_id")
+}
+
+model tasks {
+  id                                                   Int                  @id @default(autoincrement())
+  name                                                 String               @db.VarChar(100)
+  release_time                                         Int
+  time_on_task                                         Int
+  importance                                           Int
+  completion_id                                        Int
+  director                                             Int
+  deadline_time                                        Int
+  description                                          String               @db.VarChar(300)
+  project_id                                           Int?
+  order                                                Int
+  comments                                             comments[]
+  task_category                                        task_category[]
+  task_performers                                      task_performers[]
+  completion_scores                                    completion_scores    @relation(fields: [completion_id], references: [id], onUpdate: Restrict, map: "tasks_ibfk_1")
+  employee                                             employee             @relation(fields: [director], references: [id], onUpdate: Restrict, map: "tasks_ibfk_3")
+  project_columns                                      project_columns?     @relation(fields: [project_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_ibfk_4")
+  tasks_history                                        tasks_history[]
+  time_of_completion_time_of_completion_task_idTotasks time_of_completion[] @relation("time_of_completion_task_idTotasks")
+
+  @@index([completion_id], map: "completion_id")
+  @@index([director], map: "director")
+  @@index([project_id], map: "tasks_ibfk_4")
+}
+
+model tasks_history {
+  id          Int      @id @default(autoincrement())
+  task_id     Int
+  employee_id Int
+  date        Int
+  field       String   @db.VarChar(50)
+  old_value   String   @db.VarChar(500)
+  new_value   String   @db.VarChar(500)
+  employee    employee @relation(fields: [employee_id], references: [id], onUpdate: Restrict, map: "tasks_history_ibfk_1")
+  tasks       tasks    @relation(fields: [task_id], references: [id], onUpdate: Restrict, map: "tasks_history_ibfk_2")
+
+  @@index([employee_id], map: "employee_id")
+  @@index([task_id], map: "task_id")
+}
+
+model telegram_bot {
+  id        Int    @id @default(autoincrement())
+  bot_token String @db.VarChar(100)
+  group_id  Int
+}
+
+model telegram_notifications {
+  id                                                 Int      @id @default(autoincrement())
+  private_chat_id                                    Int
+  employee                                           Int
+  employee_telegram_notifications_employeeToemployee employee @relation("telegram_notifications_employeeToemployee", fields: [employee], references: [id], onUpdate: Restrict, map: "telegram_notifications_ibfk_1")
+
+  @@index([employee], map: "employee")
+}
+
+model time_completions_types {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @db.VarChar(50)
+  time_of_completion time_of_completion[]
+}
+
+model time_of_completion {
+  id                                      Int                    @id @default(autoincrement())
+  employee_id                             Int
+  task_id                                 Int
+  unix_time                               Int
+  type                                    Int
+  author                                  Int
+  employee                                employee               @relation(fields: [employee_id], references: [id], onUpdate: Restrict, map: "time_of_completion_ibfk_1")
+  tasks_time_of_completion_task_idTotasks tasks                  @relation("time_of_completion_task_idTotasks", fields: [task_id], references: [id], onUpdate: Restrict, map: "time_of_completion_ibfk_2")
+  tasks_time_of_completion_authorTotasks  employee               @relation("time_of_completion_authorTotasks", fields: [author], references: [id], onUpdate: Restrict, map: "time_of_completion_ibfk_3")
+  time_completions_types                  time_completions_types @relation(fields: [type], references: [id], onUpdate: Restrict, map: "time_of_completion_ibfk_4")
+
+  @@index([employee_id], map: "employee_id")
+  @@index([task_id], map: "task_id")
+  @@index([type], map: "type")
+  @@index([author], map: "time_of_completion_ibfk_3")
+}
+
+model tokens {
+  id            Int      @id @default(autoincrement())
+  employee_id   Int
+  refresh_token String   @unique(map: "refresh_token") @db.VarChar(500)
+  employee      employee @relation(fields: [employee_id], references: [id], onUpdate: Restrict, map: "tokens_ibfk_1")
+
+  @@index([employee_id], map: "employee_id")
+}

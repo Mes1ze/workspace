@@ -1,0 +1,32 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev --host",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@css-render/vue3-ssr": "^0.15.12",
+    "@phosphor-icons/vue": "^2.2.1",
+    "@prisma/client": "^5.9.1",
+    "@vicons/ionicons5": "^0.12.0",
+    "crypto-js": "^4.2.0",
+    "h3": "^1.10.1",
+    "jsonwebtoken": "^9.0.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.9.1",
+    "naive-ui": "^2.37.3",
+    "nuxt": "^3.11.2",
+    "sha256": "^0.2.0",
+    "vue": "^3.4.19",
+    "vue-router": "^4.2.5",
+    "vuedraggable": "^4.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.9.1"
+  }
+}
