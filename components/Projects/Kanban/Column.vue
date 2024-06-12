@@ -9,7 +9,10 @@
                 @removeColumn="removeColumn"
                 @updateColumn="updateColumn"
             />
-            <ProjectsKanbanButton @newTask="addTask" />
+            <ProjectsKanbanButton
+                @newTask="addTask"
+                v-if="user?.role_id == 1 || user?.role_id == 4"
+            />
         </div>
         <n-scrollbar>
             <draggable
@@ -30,9 +33,12 @@
 import draggable from "vuedraggable";
 import { NScrollbar } from "naive-ui";
 
+const user = useState("current_user");
+
 const props = defineProps({
     index: Number,
     column: Object,
+    random_id: Number,
 });
 
 const emit_add = defineEmits();
@@ -40,7 +46,12 @@ const emit_add = defineEmits();
 const column_tasks = ref(null);
 column_tasks.value = props?.column?.items;
 
+const random_id = ref(props?.random_id);
+
 function addTask(task) {
+    random_id.value = randomInteger(random_id.value + 1, random_id.value + 10);
+    task.id = random_id.value;
+
     column_tasks.value.unshift(task);
 }
 

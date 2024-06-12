@@ -6,10 +6,20 @@
         :align="'flex-end'"
         style="margin-bottom: 40px"
     >
-        <n-h1>{{ res?.data.name }}</n-h1>
-        <n-space horizontal :size="20" :align="'center'">
+        <n-h1>{{ res?.data?.name }}</n-h1>
+        <n-space
+            horizontal
+            :size="20"
+            :align="'center'"
+            v-if="user?.role_id == 1 || user?.role_id == 4"
+        >
             <n-button @click="open_edit_form = true"> Редактировать </n-button>
-            <n-button> Архивировать </n-button>
+            <template v-if="res?.data?.is_archive == '0'">
+                <n-button @click="archiveProject"> Архивировать </n-button>
+            </template>
+            <template v-else>
+                <n-button @click="archiveProject"> Разархивировать </n-button>
+            </template>
         </n-space>
     </n-space>
     <!-- Плашка -->
@@ -24,7 +34,16 @@
                 {{ res?.data.customer }}
             </n-descriptions-item>
             <n-descriptions-item label="Ответственный">
-                {{ res?.data.responsible_id }}
+                <template
+                    v-if="res?.data.responsible_id == res?.data?.employee?.id"
+                >
+                    {{
+                        res?.data?.employee?.firstname +
+                        " " +
+                        res?.data?.employee?.surname
+                    }}
+                </template>
+                <template v-else>-</template>
             </n-descriptions-item>
             <!-- <n-descriptions-item label="Стадия">
         {{ res?.data.stage_id }}
@@ -88,12 +107,16 @@
             title="Редактирование проекта"
             :native-scrollbar="false"
         >
-            <projects-edit-form @newData="getNewData" />
+            <projects-edit-form
+                @newData="open_edit_form = false"
+                :data="res?.data"
+                :id="route?.params?.id"
+            />
         </n-drawer-content>
     </n-drawer>
 
     <!-- Редактирование задачи -->
-    <n-drawer v-model:show="open_edit_task" width="90%">
+    <!-- <n-drawer v-model:show="open_edit_task" width="90%">
         <n-drawer-content
             closable
             title="Редактирование задачи"
@@ -101,8 +124,7 @@
         >
             <kanban-edit-form @newData="getNewData" />
         </n-drawer-content>
-    </n-drawer>
-    {{ steps_status }}
+    </n-drawer> -->
 </template>
 
 <script setup>
@@ -120,23 +142,28 @@ import {
     NStep,
     useDialog,
     NTime,
+    useNotification,
 } from "naive-ui";
 import projectsApi from "~/api/project.js";
 import KanbanEditForm from "~/components/Projects/KanbanEditForm.vue";
 
+const user = useState("current_user");
+
 const now = ref(new Date());
 const end = new Date("2024-03-01 GMT+3");
-const days_before_deadline = ref(new Date(now.value - 259200000));
 
 if (process.client) {
     setInterval(() => {
         now.value = new Date();
     }, 1000);
 }
-
 const res = ref(null);
 const route = useRoute();
 res.value = await projectsApi.getProject(route.params.id);
+
+const days_before_deadline = computed(() => {
+    return new Date(res?.value?.data.deadline * 1000 - 259200000);
+});
 
 const current_stage = ref(1);
 current_stage.value = res.value?.data?.stages_id;
@@ -145,30 +172,27 @@ const open_edit_form = ref(false);
 const open_edit_task = useState("edit_task");
 open_edit_task.value = false;
 
-const is_dark_theme = ref(false);
-const local_theme = useCookie("dark_theme");
-
-is_dark_theme.value = local_theme.value;
-
 const dialog = useDialog();
 
 function setStage(step, index) {
-    dialog.warning({
-        showIcon: false,
-        title: "Подтверждение",
-        content:
-            "Вы уверены, что хотите изменить стадию " +
-            `"${step.name}"` +
-            " проекта?",
-        negativeText: "Нет",
-        positiveText: "Да",
-        onPositiveClick: () => {
-            sumbit(index);
-        },
-        positiveButtonProps: {
-            type: "primary",
-        },
-    });
+    if (user.value?.role_id == 1 || user.value?.role_id == 4) {
+        dialog.warning({
+            showIcon: false,
+            title: "Подтверждение",
+            content:
+                "Вы уверены, что хотите изменить стадию " +
+                `"${step.name}"` +
+                " проекта?",
+            negativeText: "Нет",
+            positiveText: "Да",
+            onPositiveClick: () => {
+                sumbit(index);
+            },
+            positiveButtonProps: {
+                type: "primary",
+            },
+        });
+    }
 }
 
 function sumbit(index) {
@@ -178,49 +202,6 @@ function sumbit(index) {
 function getNewData(new_data) {
     res.value.data = new_data;
 }
-
-// function convertTimestamp(timestamp) {
-//     var d = new Date(timestamp * 1000),
-//         yyyy = d.getFullYear(),
-//         mm = ("0" + (d.getMonth() + 1)).slice(-2),
-//         dd = ("0" + d.getDate()).slice(-2),
-//         hh = d.getHours(),
-//         h = hh,
-//         min = ("0" + d.getMinutes()).slice(-2),
-//         ampm = "AM",
-//         time;
-
-//     if (hh > 12) {
-//         h = hh - 12;
-//         ampm = "PM";
-//     } else if (hh === 12) {
-//         h = 12;
-//         ampm = "PM";
-//     } else if (hh == 0) {
-//         h = 12;
-//     }
-
-//     time = yyyy + "-" + mm + "-" + dd + ", " + h + ":" + min + " " + ampm;
-//     return time;
-// }
-let socket;
-
-onMounted(() => {
-    if (process.client) {
-        socket = new WebSocket(
-            "ws://localhost:3000/ws/projects/" + route.params.id
-        );
-
-        socket.addEventListener("message", (event) => {
-            const data = JSON.parse(event.data);
-            console.log(data);
-
-            // if (data?.action == "create") {
-            //     task_array.value.unshift(data.task);
-            // }
-        });
-    }
-});
 
 function getStatus(step) {
     if (step.id < res?.value?.data?.stage_id) {
@@ -232,11 +213,13 @@ function getStatus(step) {
     }
 }
 
+const dark_theme = useState("dark_theme");
+
 function deadlineColor(timestamp) {
     let date = new Date(timestamp * 1000);
-    if (res?.value?.data?.is_archive != "1") {
+    if (res.value.data?.is_archive != "1") {
         //3 дня до сдачи
-        if (date < now.value && date > days_before_deadline.value) {
+        if (days_before_deadline.value < now.value && now.value < date) {
             if (dark_theme.value) {
                 return "#f2c97d";
             } else {
@@ -255,6 +238,46 @@ function deadlineColor(timestamp) {
         }
     }
 }
+const notification = useNotification();
+
+async function archiveProject() {
+    let data;
+    if (res.value.data?.is_archive == "0") {
+        data = {
+            is_archive: "1",
+        };
+    } else {
+        data = {
+            is_archive: "0",
+        };
+    }
+    const result = await projectsApi.updateProject(data, route.params.id);
+
+    if (result.success) {
+        notification.success({
+            content: "Данные обновлены.",
+            duration: 10000,
+        });
+    }
+}
+
+let socket;
+
+onMounted(() => {
+    if (process.client) {
+        socket = new WebSocket(
+            "ws://localhost:3000/ws/projects/" + route.params.id
+        );
+
+        socket.addEventListener("message", (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data?.action == "update") {
+                res.value.data = Object.assign(res.value.data, data.project);
+            }
+        });
+    }
+});
 </script>
 
 <style>

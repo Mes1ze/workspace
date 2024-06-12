@@ -65,7 +65,16 @@ class TaskService {
     async getTasks(ctx) {
         try {
             const tasks = await taskModel.getAll(ctx);
-            if(tasks) return helper.resFormat(200, tasks)
+            if(tasks) {
+                for(const i in tasks) {
+                    const spentTime = await timeOfCompletionModel.getTime(tasks[i].id)
+                    const completion = await timeOfCompletionModel.getAll(tasks[i].id)
+                    tasks[i].spent_time = spentTime
+                    tasks[i].time_of_Completion = completion
+                }
+
+                return helper.resFormat(200, tasks)
+            }
             else return helper.resFormat(404)
         } catch(e) {
             return helper.resFormat(500, e)

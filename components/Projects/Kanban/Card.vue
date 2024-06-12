@@ -1,17 +1,15 @@
 <template>
     <div>
-        <n-card
-            hoverable
-            class="kanban-task-card"
-            :id="props?.card?.id"
-            @click="open_detail_task = true"
-        >
+        <n-card hoverable class="kanban-task-card" :id="props?.card?.id">
+            <!-- @click="open_detail_task = true" -->
             <div class="kanban-task-card-title">
                 {{ props?.card?.title }}
             </div>
-            <div class="kanban-task-card-deadline">до 20.20.2024</div>
+            <!-- <div class="kanban-task-card-deadline">до 20.20.2024</div> -->
             <div class="kanban-task-card-id">ID {{ props?.card?.id }}</div>
-            <div class="kanban-task-card-responsible">Васильев Максим</div>
+            <div class="kanban-task-card-responsible">
+                {{ user?.surname + " " + user?.firstname }}
+            </div>
         </n-card>
 
         <n-drawer
@@ -78,6 +76,7 @@ const props = defineProps({
     card: Object,
     item: Object,
 });
+const user = useState("current_user");
 
 const open_edit_task = useState("edit_task");
 open_edit_task.value = false;

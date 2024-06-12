@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   runtimeConfig: {
     public: {
       apiBaseUrl: process.env.NODE_ENV === 'production' ? 'http://5.35.82.182:3000' : 'http://localhost:3000',

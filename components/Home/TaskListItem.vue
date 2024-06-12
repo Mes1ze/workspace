@@ -5,7 +5,7 @@
                 <div class="home-task-list-item-col">
                     <div class="home-task-list-item-col-header">Проект</div>
                     <div class="home-task-list-item-col-content">
-                        {{ props.item?.project_id ?? "Пусто" }}
+                        {{ props.item?.projects?.name ?? "Пусто" }}
                     </div>
                 </div>
                 <div class="home-task-list-item-col">
@@ -23,13 +23,11 @@
                         Потрачено времени
                     </div>
                     <div class="home-task-list-item-col-content">
-                        <!-- <n-time
-                            :time="
-                                new Date(props.item?.time_to_complete * 1000)
-                            "
+                        <n-time
+                            :time="new Date(props.item?.spent_time * 1000)"
                             format="HH:mm"
                             type="relative"
-                        /> -->
+                        />
                         из
                         <n-time
                             :time="new Date(props.item.time_on_task * 1000)"
@@ -61,9 +59,15 @@
             </template>
             <div class="home-task-messages">
                 <div class="home-task-messages-item" v-for="item in data">
-                    <h2 class="home-task-messages-item-title">коментарий номер {{ item.id }}</h2>
-                    <p class="home-task-messages-item-content">{{ item.content }}</p>
-                    <p class="home-task-messages-item-date">{{ item.datea}}  {{ item.time }}</p>
+                    <h2 class="home-task-messages-item-title">
+                        коментарий номер {{ item.id }}
+                    </h2>
+                    <p class="home-task-messages-item-content">
+                        {{ item.content }}
+                    </p>
+                    <p class="home-task-messages-item-date">
+                        {{ item.datea }} {{ item.time }}
+                    </p>
                 </div>
                 <n-form
                     ref="formRef"
@@ -75,7 +79,7 @@
                     <n-form-item path="text">
                         <n-input
                             v-model:value="formValue.text"
-                            type="textarea" 
+                            type="textarea"
                             placeholder="Введите комаентарий"
                         />
                     </n-form-item>
@@ -102,65 +106,65 @@ import {
     NIcon,
     NTime,
     NInput,
-    NForm, 
-    NFormItem, 
+    NForm,
+    NFormItem,
 } from "naive-ui";
 import { PhPencil } from "@phosphor-icons/vue";
 const props = defineProps({
-    item: null
-})
+    item: null,
+});
 const formRef = ref("");
 const formValue = ref({
     text: "",
 });
-const message_input = ref("")
+const message_input = ref("");
 const data = [
     {
-        id:1,
-        content:"jhwgfvbaoknfwe  we r ew g df hhwerryuhor  werugbyehdf",
-        date:"дата",
-        time:"11:42",
+        id: 1,
+        content: "jhwgfvbaoknfwe  we r ew g df hhwerryuhor  werugbyehdf",
+        date: "дата",
+        time: "11:42",
     },
     {
-        id:2,
-        content:"qwertyuiop[ sdfghjk zxcvbnm,]",
-        date:"дата",
-        time:"04:20",
+        id: 2,
+        content: "qwertyuiop[ sdfghjk zxcvbnm,]",
+        date: "дата",
+        time: "04:20",
     },
     {
-        id:3,
-        content:"jhfgu u  woua f ahwefhnoiaj",
-        date:"дата",
-        time:"18:46",
+        id: 3,
+        content: "jhfgu u  woua f ahwefhnoiaj",
+        date: "дата",
+        time: "18:46",
     },
     {
-        id:4,
-        content:"234ij872v uh2rhh23h9 ihw73 nuw34t",
-        date:"дата",
-        time:"13:00",
+        id: 4,
+        content: "234ij872v uh2rhh23h9 ihw73 nuw34t",
+        date: "дата",
+        time: "13:00",
     },
-]
-const hour_now = ref(null)
-const minute_now = ref(null)
+];
+const hour_now = ref(null);
+const minute_now = ref(null);
 function createMessage(text) {
-    let last_id = data.at(-1).id
+    let last_id = data.at(-1).id;
     let currentDate = new Date();
-    if (currentDate.getHours() < 10){
-        hour_now.value = "0" + currentDate.getHours().toString()
-    }else{
-        hour_now.value =  currentDate.getHours().toString()
+    if (currentDate.getHours() < 10) {
+        hour_now.value = "0" + currentDate.getHours().toString();
+    } else {
+        hour_now.value = currentDate.getHours().toString();
     }
-    if (currentDate.getMinutes() < 10){
-        minute_now.value = "0" + currentDate.getMinutes().toString()
-    }else{
-        minute_now.value =  currentDate.getMinutes().toString()
+    if (currentDate.getMinutes() < 10) {
+        minute_now.value = "0" + currentDate.getMinutes().toString();
+    } else {
+        minute_now.value = currentDate.getMinutes().toString();
     }
     data.push({
         id: last_id + 1,
         content: text,
-        date:"дата",
-        time:`${hour_now.value}:${minute_now.value}`,
-    })
+        date: "дата",
+        time: `${hour_now.value}:${minute_now.value}`,
+    });
 }
 const open_message_task = ref(false);
 
@@ -187,18 +191,18 @@ function saveTask() {
 </script>
 
 <style>
-.home-task-messages-form{
+.home-task-messages-form {
     width: 50%;
 }
 
-.home-task-messages{
+.home-task-messages {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    align-items:flex-end;
+    align-items: flex-end;
 }
 
-.home-task-messages-item{
+.home-task-messages-item {
     background-color: lightgrey;
     border-radius: 5px;
     padding: 15px;
@@ -210,11 +214,11 @@ function saveTask() {
 
 .home-task-messages-item-title,
 .home-task-messages-item-date,
-.home-task-messages-item-content{
+.home-task-messages-item-content {
     margin: 0;
 }
 
-.home-task-messages-item-date{
+.home-task-messages-item-date {
     align-self: flex-end;
 }
 .home-task-list-item {
@@ -240,4 +244,5 @@ function saveTask() {
 .home-task-list-item-col-header {
     font-weight: 500;
 }
-</style>=
+</style>
+=

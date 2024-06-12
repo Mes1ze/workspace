@@ -118,24 +118,24 @@ const form_rules = {
 
 const director_list_options = [
     {
-        label: "Стапан Кубасов",
+        label: "Олег Бардак",
         value: 1,
     },
     {
-        label: "Олег Бардак",
+        label: "Степан Кубасов",
         value: 2,
     },
 ];
 
 const projects_list_options = [
     {
-        label: "Бастион",
-        value: 1,
-    },
-    {
-        label: "Workspace",
+        label: "Работа с тканями (Fabrixx)",
         value: 2,
     },
+    // {
+    //     label: "Workspace",
+    //     value: 2,
+    // },
 ];
 
 const notification = useNotification();
@@ -161,7 +161,7 @@ async function create(e) {
                     content: "Задача создана.",
                     duration: 10000,
                 });
-                emit("newTask", result.data);
+                // emit("newTask", result.data);
                 data = null;
                 form_data.name = null;
                 form_data.release_time = null;

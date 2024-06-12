@@ -7,17 +7,7 @@
                         v-for="task in active_tasks"
                         class="home-task-list-item"
                     >
-                    <home-task-list-item :item="task"/>
-                    </n-list-item>
-                </n-list>
-            </n-tab-pane>
-            <n-tab-pane name="archive" tab="Архивные">
-                <n-list hoverable clickable>
-                    <n-list-item
-                        v-for="task in archive_tasks"
-                        class="home-task-list-item"
-                    >
-                    <home-task-list-item :item="task"/>
+                        <tasks-list-item :item="task" />
                     </n-list-item>
                 </n-list>
             </n-tab-pane>
@@ -40,13 +30,6 @@ const active_tasks = computed(() => {
         (task) => task.completion_scores.name == "progress"
     );
 });
-const archive_tasks = computed(() => {
-    return props.tasks.filter(
-        (task) => task.completion_scores.name == "completed"
-    );
-});
 </script>
 
-<style>
-
-</style>
+<style></style>

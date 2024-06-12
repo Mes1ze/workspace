@@ -9,21 +9,17 @@ export default async function send(endpoint, params = {}) {
 
     params = Object.assign(default_params, params);
 
-    const api = $fetch.create({
-        ...params,
-        async onResponseError({ request, response, options }) {
-            if (response.status == 401 && !options.retry) {
-                options.retry = true;
+    const api = $fetch.create({ ...params });
 
-                await $fetch(config.public.apiBaseUrl + '/api/users/refresh', { 
-                    credentials: "same-origin",  method: 'post',
-                });
+    let res = await api(endpoint).catch((error) => error.data);
 
-                response = await api(request).catch((error) => error.data);
-            }
-        },
-    });
+    if (res.status == 401) {
+        await $fetch(config.public.apiBaseUrl + '/api/users/refresh', { 
+            credentials: "same-origin",  method: 'post',
+        });
 
-    const res = await api(endpoint).catch((error) => error.data);
+        res = await api(endpoint).catch((error) => error.data);
+    }
+
     return res;
 }

@@ -70,12 +70,14 @@
 import { NThing, NTime } from "naive-ui";
 
 const now = ref(new Date());
-const days_before_deadline = ref(new Date(now.value - 259200000));
 
 const props = defineProps({
     item: Object,
 });
 
+const days_before_deadline = computed(() => {
+    return new Date(props.item?.deadline * 1000 - 259200000);
+});
 // const deadline = computed(() => {
 //     const is_date = Date.parse(props.item?.deadline);
 //     if (is_date) {
@@ -87,7 +89,6 @@ const props = defineProps({
 if (process.client) {
     setInterval(() => {
         now.value = new Date();
-        days_before_deadline.value = new Date(now.value - 259200000);
     }, 1000);
 }
 
@@ -97,7 +98,7 @@ function deadlineColor(timestamp) {
     let date = new Date(timestamp * 1000);
     if (props.item?.is_archive != "1") {
         //3 дня до сдачи
-        if (date < now.value && date > days_before_deadline.value) {
+        if (days_before_deadline.value < now.value && now.value < date) {
             if (dark_theme.value) {
                 return "#f2c97d";
             } else {

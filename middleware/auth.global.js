@@ -1,27 +1,32 @@
 import userApi from "~/api/user";
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
-    const scroll_position = useState("scrollbar");
-    scroll_position.value?.scrollTo({
-        top: 0,
-    });
     if (process.client) {
+        const scroll_position = useState("scrollbar");
+
+        scroll_position.value?.scrollTo({
+            top: 0,
+        });
+ 
         const user = useState("current_user");
 
         if (!user.value) {
-            const response = await userApi.me();
+            try {
+                const response = await userApi.me();
 
-            if (response?.success) {
+                if (!response?.success) {
+                    throw createError({
+                        statusCode: response.status,
+                        message: response.message,
+                    })
+                }
+
                 user.value = response.data;
-
-                //  if (to.path !== '/') {
-                //      return navigateTo('/');
-                //  }
+            } catch (error) {
+                if (!user.value && to.path !== '/login') {
+                    return navigateTo('/login');           
+                }
             }
-        }
-
-        if (!user.value && to.path !== "/login") {
-            return navigateTo("/login");
         }
     }
 });

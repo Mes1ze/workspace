@@ -30,11 +30,13 @@
         <n-form-item label="Срок сдачи" path="deadline">
             <n-date-picker
                 type="date"
+                format="dd MMMM yyyy"
+                :first-day-of-week="0"
                 v-model:value="form_data.deadline"
                 style="width: 100%"
             />
         </n-form-item>
-        <n-button @click="update"> Сохранить </n-button>
+        <n-button @click.prevent="update"> Сохранить </n-button>
     </n-form>
 </template>
 
@@ -47,15 +49,21 @@ import {
     NSelect,
     NDatePicker,
     NButton,
+    useNotification,
 } from "naive-ui";
+
+const props = defineProps({
+    data: Object,
+    id: String,
+});
 
 const form_ref = ref(null);
 const form_data = reactive({
-    name: "",
-    customer: "",
-    description: "",
-    responsible_id: null,
-    deadline: null,
+    name: props?.data?.name,
+    customer: props?.data?.customer,
+    description: props?.data?.description,
+    responsible_id: props?.data?.responsible_id,
+    deadline: Number(props?.data?.deadline * 1000),
 });
 
 const form_rules = {
@@ -68,27 +76,45 @@ const form_rules = {
 
 const responsoble_list_options = [
     {
-        label: "Стапан Кубасов",
+        label: "Олег Бардак",
         value: 1,
     },
     {
-        label: "Олег Бардак",
+        label: "Степан Кубасов",
         value: 2,
     },
 ];
 
-const emit = defineEmits(['newData'])
+const emit = defineEmits(["newData"]);
 
-function update(e) {
-    e.preventDefault();
-    form_ref.value.validate(async (errors) => {
-        if (errors) {
-            return;
+const notification = useNotification();
+
+async function update() {
+    await form_ref.value.validate(async (errors) => {
+        if (!errors) {
+            const data = {
+                name: form_data.name,
+                customer: form_data.customer,
+                description: form_data.description,
+                responsible_id: form_data.responsible_id,
+                deadline: (form_data.deadline / 1000).toString() ?? null,
+            };
+
+            const res = await projectApi.updateProject(data, props?.id);
+
+            if (res.success) {
+                notification.success({
+                    content: "Данные обновлены.",
+                    duration: 10000,
+                });
+                emit("newData");
+            }
+        } else {
+            notification.error({
+                content: "Неверные данные формы!",
+                duration: 10000,
+            });
         }
-
-        const res = await projectApi.updateProject(form_data, 1);
-
-        emit('newData', res);
     });
 }
 </script>

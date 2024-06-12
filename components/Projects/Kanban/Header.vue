@@ -14,6 +14,7 @@
                 class="kanban-header-right"
                 trigger="click"
                 @select="handleSelect"
+                v-if="user?.role_id == 1 || user?.role_id == 4"
             >
                 <n-button>
                     <svg
@@ -83,6 +84,8 @@ import {
     useDialog,
     useNotification,
 } from "naive-ui";
+
+const user = useState("current_user");
 
 const notification = useNotification();
 const dialog = useDialog();

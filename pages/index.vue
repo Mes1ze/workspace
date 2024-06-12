@@ -26,8 +26,13 @@
     <n-h2> Время на рабочем месте&nbsp;&nbsp; {{ time }} </n-h2>
 
     <n-button @click="toggleTimer">
-         {{ time_line?.length == 0 ? 'Начать рабочий день' : is_running ? 'Остановить' : 'Продолжить' }}
-         
+        {{
+            time_line?.length == 0
+                ? "Начать рабочий день"
+                : is_running
+                ? "Остановить"
+                : "Продолжить"
+        }}
     </n-button>
 
     <n-scrollbar x-scrollable class="home-timeline-scrollbar">
@@ -54,7 +59,7 @@
                         v-for="task in active_tasks"
                         class="task-list-item"
                     >
-                        <home-task-list-item :item="task" />
+                        <tasks-list-item :item="task" />
                     </n-list-item>
                 </n-list>
             </n-scrollbar>
@@ -89,7 +94,7 @@ import {
     NList,
 } from "naive-ui";
 import { format } from "date-fns";
-import { ru } from "date-fns/locale";
+import { ru } from "date-fns/locale/index.js";
 import TasksApi from "~/api/tasks.js";
 
 // const now = ref(new Date());
@@ -239,8 +244,16 @@ onMounted(() => {
         socket = new WebSocket("ws://localhost:3000/ws/tasks");
 
         socket.addEventListener("message", (event) => {
-            const data = JSON.parse(event.data);
-            if (data?.action == "create") {
+            const event_data = JSON.parse(event.data);
+
+            if (event_data?.action == "update") {
+                const current_task = task_array.value.findIndex(
+                    (task) => task.id == event_data.task.id
+                );
+                task_array.value[current_task] = Object.assign(
+                    task_array.value[current_task],
+                    event_data.task
+                );
             }
         });
     }

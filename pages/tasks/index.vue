@@ -1,6 +1,10 @@
 <template>
     <n-h1>Задачи</n-h1>
-    <n-button @click="open_create_form = true" style="margin-bottom: 20px">
+    <n-button
+        @click="open_create_form = true"
+        style="margin-bottom: 20px"
+        v-if="user?.role_id == 1 || user?.role_id == 4"
+    >
         Создать задачу
     </n-button>
     <tasks-list :tasks="task_array" />
@@ -14,10 +18,8 @@
             title="Создание нового задачи"
             :native-scrollbar="false"
         >
-            <tasks-create-form
-                @newTask="addTasks"
-                @openDrawer="open_create_form = false"
-            />
+            <!-- @newTask="addTasks" -->
+            <tasks-create-form @openDrawer="open_create_form = false" />
         </n-drawer-content>
     </n-drawer>
 </template>
@@ -26,6 +28,8 @@
 import { NH1, NButton, NDrawer, NDrawerContent } from "naive-ui";
 import TasksApi from "~/api/tasks.js";
 
+const user = useState("current_user");
+
 const { data, error } = await TasksApi.getTasks();
 
 const task_array = ref([]);
@@ -33,9 +37,9 @@ task_array.value = data;
 
 const open_create_form = ref(false);
 
-function addTasks(task) {
-    task_array.value.unshift(task);
-}
+// function addTasks(task) {
+//     task_array.value.push(task);
+// }
 
 let socket;
 
@@ -45,9 +49,20 @@ onMounted(() => {
         socket = new WebSocket("ws://localhost:3000/ws/tasks");
 
         socket.addEventListener("message", (event) => {
-            const data = JSON.parse(event.data);
+            const event_data = JSON.parse(event.data);
 
-            if (data?.action == "create") {
+            if (event_data?.action == "create") {
+                task_array.value.push(event_data.task);
+            }
+
+            if (event_data?.action == "update") {
+                const current_task = task_array.value.findIndex(
+                    (task) => task.id == event_data.task.id
+                );
+                task_array.value[current_task] = Object.assign(
+                    task_array.value[current_task],
+                    event_data.task
+                );
             }
         });
     }

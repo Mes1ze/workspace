@@ -29,6 +29,7 @@ class ProjectApi {
                 description: fields.description,
                 responsible_id: fields.responsible_id,
                 deadline: fields.deadline,
+                is_archive: fields.is_archive,
             };
             if (user_id) {
                 data.for_user = user_id;
@@ -37,7 +38,7 @@ class ProjectApi {
                 method: "put",
                 body: data,
             });
-            return result?.data;
+            return result;
         } catch (error) {
             console.error(error);
             return false;

@@ -5,7 +5,7 @@
                 <div class="table-task-item-body-col">
                     <div class="table-task-item-body-col-header">Проект</div>
                     <div class="table-task-item-body-col-content">
-                        {{ props.item?.project_id ?? "Пусто" }}
+                        {{ props.item?.projects?.name ?? "Пусто" }}
                     </div>
                 </div>
                 <div class="table-task-item-body-col">
@@ -23,13 +23,14 @@
                         Потрачено времени
                     </div>
                     <div class="table-task-item-body-col-content">
-                        <!-- <n-time
-                            :time="
-                                new Date(props.item?.time_to_complete * 1000)
-                            "
-                            format="HH:mm"
-                            type="relative"
-                        /> -->
+                        <template v-if="props.item?.spent_time">
+                            <n-time
+                                :time="new Date(props.item?.spent_time * 1000)"
+                                format="HH:mm"
+                                type="relative"
+                            />
+                        </template>
+                        <template v-else> 00:00 </template>
                         из
                         <n-time
                             :time="new Date(props.item.time_on_task * 1000)"
@@ -71,7 +72,7 @@
                     }
                 "
             />
-            <template #footer>
+            <template #footer v-if="user?.role_id == 1 || user?.role_id == 4">
                 <div class="task-drawer-footer">
                     <template v-if="!updated_mode">
                         <n-button @click.prevent="updateTask">
@@ -82,11 +83,21 @@
                         </n-button>
                     </template>
                     <template v-else>
-                        <n-button @click.prevent="saveTask">
-                            Сохранить
+                        <n-button @click="saveTask"> Сохранить </n-button>
+                        <n-button @click="cancelUpdate"> Отмена </n-button>
+                    </template>
+                    <template v-if="props?.item?.completion_id == 2">
+                        <n-button
+                            @click.prevent="archiveTask(props.item?.name)"
+                        >
+                            Архивировать
                         </n-button>
-                        <n-button @click.prevent="cancelUpdate">
-                            Отмена
+                    </template>
+                    <template v-else>
+                        <n-button
+                            @click.prevent="archiveTask(props.item?.name)"
+                        >
+                            Разархивировать
                         </n-button>
                     </template>
                 </div>
@@ -103,9 +114,14 @@ import {
     NButton,
     NIcon,
     NTime,
+    useNotification,
+    useDialog,
 } from "naive-ui";
 import { PhPencil } from "@phosphor-icons/vue";
 import { defineProps } from "vue";
+import taskApi from "~/api/tasks.js";
+
+const user = useState("current_user");
 
 const props = defineProps({
     item: Object,
@@ -117,6 +133,69 @@ const updated_mode = ref(false);
 
 function updateTask() {
     updated_mode.value = true;
+}
+
+const notification = useNotification();
+const dialog = useDialog();
+
+function archiveTask(title) {
+    let data;
+
+    if (props?.item?.completion_id == 2) {
+        data = {
+            completion_id: 1,
+        };
+
+        dialog.warning({
+            showIcon: false,
+            title: "Подтверждение",
+            content:
+                "Вы уверены, что хотите архивировать " + `"${title}"` + "?",
+            negativeText: "Нет",
+            positiveText: "Да",
+            onPositiveClick: async () => {
+                const result = await taskApi.updateTask(props?.item?.id, data);
+
+                if (result.success) {
+                    notification.success({
+                        content: "Задача создана.",
+                        duration: 10000,
+                    });
+                    open_detail_task.value = false;
+                }
+            },
+            positiveButtonProps: {
+                type: "primary",
+            },
+        });
+    } else {
+        data = {
+            completion_id: 2,
+        };
+
+        dialog.warning({
+            showIcon: false,
+            title: "Подтверждение",
+            content:
+                "Вы уверены, что хотите разархивировать " + `"${title}"` + "?",
+            negativeText: "Нет",
+            positiveText: "Да",
+            onPositiveClick: async () => {
+                const result = await taskApi.updateTask(props?.item?.id, data);
+
+                if (result.success) {
+                    notification.success({
+                        content: "Задача создана.",
+                        duration: 10000,
+                    });
+                    open_detail_task.value = false;
+                }
+            },
+            positiveButtonProps: {
+                type: "primary",
+            },
+        });
+    }
 }
 
 function cancelUpdate(value) {
@@ -131,6 +210,7 @@ function cancelUpdate(value) {
 const task_is_save = ref(false);
 
 function saveTask() {
+    task_is_save.value = false;
     task_is_save.value = true;
 }
 </script>

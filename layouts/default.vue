@@ -19,7 +19,7 @@
                     :render-label="renderMenuLabel"
                     :render-icon="renderMenuIcon"
                     style="height: calc(100vh - 51px)"
-                    default-value="home"
+                    :default-value="default_menu_item"
                 />
                 <n-layout-footer
                     :collapsed="collapsed"
@@ -251,12 +251,12 @@ async function logout() {
     await navigateTo("/login");
 }
 
-watch(
-    () => user.value,
-    (new_value) => {
-        console.log(new_value);
-    }
-);
+
+const route = useRoute();
+const default_menu_item = computed(() => {
+    const found = menuOptions.find((item) => item.to == route.path);
+    return found?.key ?? 'home';
+})
 </script>
 
 <style>

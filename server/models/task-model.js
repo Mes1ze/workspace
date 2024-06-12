@@ -57,6 +57,9 @@ class TaskModel {
 
             try { delete result.task_performers.employee_task_performers_director_idToemployee.password_hash } catch(e) {}
             try { delete result.task_performers.employee_task_performers_executor_idToemployee.password_hash } catch(e) {}
+            result.projects = await client.projects.findFirst({ where: {
+                id: result.project_columns?.project_id
+            }})
 
             if(result) return result
             else return false

@@ -1,6 +1,10 @@
 <template>
     <n-h1>Проекты</n-h1>
-    <n-button @click="open_create_form = true" style="margin-bottom: 20px">
+    <n-button
+        @click="open_create_form = true"
+        style="margin-bottom: 20px"
+        v-if="user?.role_id == 1 || user?.role_id == 4"
+    >
         Создать новый
     </n-button>
     <projects-list :projects="projects" />
@@ -23,6 +27,9 @@
 import { NH1, NButton, NDrawer, NDrawerContent } from "naive-ui";
 import projectApi from "~/api/project.js";
 
+const user = useState("current_user");
+console.log(user.value);
+
 const projects = ref([]);
 const open_create_form = ref(false);
 
@@ -38,7 +45,6 @@ onMounted(() => {
 
         socket.addEventListener("message", (event) => {
             const data = JSON.parse(event.data);
-            console.log(data);
 
             // if (data?.action == "create") {
             //     task_array.value.unshift(data.task);

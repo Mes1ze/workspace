@@ -2,9 +2,11 @@ import UserModel from "~/server/models/user-model";
 import tokenService from "~/server/services/token-service";
 import helper from "~/server/services/helper-service";
 import RoleService from "~/server/services/role-service";
+import TaskService from "~/server/services/task-service";
 
 const userModel = new UserModel()
 const roleService = new RoleService()
+const taskService = new TaskService()
 
 class UserService {
     async login(ctx) {
@@ -19,7 +21,7 @@ class UserService {
             const hash = await helper.hash(ctx.password)
        
             if (hash != user.password_hash) {
-                return helper.resFormat(401, `Неверный пароль.`)
+                return helper.resFormat(403, `Неверный пароль.`)
             }
 
             const userInfo = {
@@ -41,7 +43,7 @@ class UserService {
             })
         } catch (e) {
             console.log(e);
-            return helper.resFormat(401)
+            return helper.resFormat(403)
         }
     } 
 
@@ -135,6 +137,23 @@ class UserService {
             if(result) {
                 const permissions = await roleService.getPermissions(result.id)
                 result.permissions = permissions.data
+
+                const tasks = await taskService.getTasks({
+                    where: {
+                        task_performers: {
+                            some: {
+                                employee_task_performers_executor_idToemployee: {
+                                    id: +ctx.employee_id || undefined
+                                }
+                            }
+                        },
+                        completion_scores: {
+                            name: "progress"
+                        } 
+                    }
+                })
+
+                result.tasks = tasks.data
 
                 return helper.resFormat(200, result)
             } else return helper.resFormat(404, false)

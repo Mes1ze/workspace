@@ -8,6 +8,7 @@
                 @addNewColumn="addNewColumn"
                 @removeColumn="removeColumn"
                 @updateColumn="updateColumn"
+                :random_id="random_id"
             />
         </n-space>
     </n-scrollbar>
@@ -15,6 +16,8 @@
 
 <script setup>
 import { NScrollbar, NSpace } from "naive-ui";
+
+let random_id = ref(1);
 
 const kanban = reactive([
     {
@@ -76,18 +79,18 @@ const kanban = reactive([
             },
         ],
     },
-    //  {
-    //      task_input: false,
-    //      header: "Третья колонка",
-    //      items: [
-    //          {
-    //              id: 11,
-    //              title: "4",
-    //              deadline: "1231",
-    //              description: "999",
-    //          },
-    //      ],
-    //  },
+    // {
+    //     task_input: false,
+    //     header: "Третья колонка",
+    //     items: [
+    //         {
+    //             id: 11,
+    //             title: "4",
+    //             deadline: "1231",
+    //             description: "999",
+    //         },
+    //     ],
+    // },
     //  {
     //      task_input: false,
     //      header: "Четвёртая колонка",
@@ -119,6 +122,16 @@ const kanban = reactive([
     //      ],
     //  },
 ]);
+
+kanban.forEach((column) => {
+    column.items.forEach((card) => {
+        random_id.value = randomInteger(
+            random_id.value + 1,
+            random_id.value + 10
+        );
+        card.id = random_id.value;
+    });
+});
 
 function addNewColumn(new_column, index) {
     kanban.splice(index + 1, 0, new_column);

@@ -68,7 +68,7 @@
                     {{
                         director_list_options.find(
                             (item, index) => index + 1 == form_data.director
-                        ).label
+                        )?.label
                     }}
                     <!-- 123 -->
                 </div>
@@ -118,8 +118,8 @@
                 <div class="task-item-readonly">
                     {{
                         projects_list_options.find(
-                            (item, index) => index + 1 == form_data.project_id
-                        ).label
+                            (item, index) => item?.value == form_data.project_id
+                        )?.label
                     }}
                     <!-- 123 -->
                 </div>
@@ -145,6 +145,7 @@ import {
     NDatePicker,
     NTimePicker,
     NInputNumber,
+    useNotification,
 } from "naive-ui";
 import taskApi from "~/api/tasks.js";
 
@@ -174,35 +175,39 @@ const form_rules = {
         trigger: ["input", "blur"],
     },
     release_time: {
+        type: "number",
         required: true,
         message: "Обязательное поле",
+        trigger: ["blur", "change"],
     },
     director: {
+        type: "number",
         required: true,
         message: "Обязательное поле",
+        trigger: ["blur", "change"],
     },
 };
 
 const director_list_options = [
     {
-        label: "Стапан Кубасов",
+        label: "Олег Бардак",
         value: 1,
     },
     {
-        label: "Олег Бардак",
+        label: "Степан Кубасов",
         value: 2,
     },
 ];
 
 const projects_list_options = [
     {
-        label: "Бастион",
-        value: 1,
-    },
-    {
-        label: "Workspace",
+        label: "Работа с тканями (Fabrixx)",
         value: 2,
     },
+    // {
+    //     label: "Workspace",
+    //     value: 2,
+    // },
 ];
 
 const deadline_readonly = computed(() => {
@@ -261,30 +266,37 @@ let months = [
 
 const emit = defineEmits("update_task");
 
+const notification = useNotification();
 async function saveTask() {
-    emit("update_task");
-    // await form_ref.value.validate(async (errors) => {
-    //     if (!errors) {
-    //         const result = await taskApi.updateTask(
-    //             props?.task_id,
-    //             form_data.value
-    //         );
+    await form_ref.value.validate(async (errors) => {
+        if (!errors) {
+            const data = {
+                name: form_data.name,
+                release_time: (form_data.release_time / 1000).toString(),
+                time_on_task: (form_data.time_on_task / 1000).toString(),
+                importance: form_data.importance,
+                director: form_data.director,
+                deadline_time: (form_data.deadline_time / 1000).toString(),
+                description: form_data.description,
+                project_id: form_data.project_id,
+            };
 
-    //         console.log(result);
+            const result = await taskApi.updateTask(props?.task_id, data);
 
-    //         if (result.success) {
-    //             notification.success({
-    //                 content: "Данные обновлены.",
-    //                 duration: 10000,
-    //             });
-    //         }
-    //     } else {
-    //         notification.error({
-    //             content: "Неверные данные формы!",
-    //             duration: 10000,
-    //         });
-    //     }
-    // });
+            if (result.success) {
+                notification.success({
+                    content: "Данные обновлены.",
+                    duration: 10000,
+                });
+                emit("update_task");
+            }
+        } else {
+            notification.error({
+                content: "Неверные данные формы!",
+                duration: 10000,
+            });
+        }
+    });
 }
 
 watch(

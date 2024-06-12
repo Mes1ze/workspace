@@ -68,11 +68,11 @@ const form_rules = {
 
 const responsoble_list_options = [
     {
-        label: "Стапан Кубасов",
+        label: "Олег Бардак",
         value: 1,
     },
     {
-        label: "Олег Бардак",
+        label: "Степан Кубасов",
         value: 2,
     },
 ];
